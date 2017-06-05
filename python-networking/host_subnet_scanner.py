@@ -10,6 +10,7 @@ import time
 import struct
 from ctypes import *
 
+
 # IP header
 class IP(Structure):
 	_fields_ = [
