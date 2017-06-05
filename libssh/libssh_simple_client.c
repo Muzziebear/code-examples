@@ -1,5 +1,5 @@
 /*
-    A simple libssh client created to familiarize myself with the
+    A simple ssh client created to familiarize myself with the
     secure shell protocol and the libssh library. Currently the
     client only implements opening a shell command channel, 
     receiving user commands, and sending the results to the server.
