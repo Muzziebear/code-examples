@@ -13,7 +13,8 @@ from ctypes import *
 
 # IP header
 class IP(Structure):
-	_fields_ = [
+	_fields_ = 
+	[
 		("ihl", c_ubyte, 4),
 		("version", c_ubyte, 4),
 		("tos", c_ubyte),
@@ -47,13 +48,14 @@ class IP(Structure):
 
 # ICMP header
 class ICMP(Structure):
-	_fields_ = [
+	_fields_ = 
+	[
 		("type", c_ubyte),
 		("code", c_ubyte),
 		("checksum", c_ushort),
 		("unused", c_ushort),
 		("next_hop_mtu", c_ushort)
-		]
+	]
 
 	def __new__(self, socket_buffer):
 		return self.from_buffer_copy(socket_buffer)
