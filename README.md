@@ -1,2 +1,2 @@
 # code-examples
-Examples of code I've created as a learning experience
+Examples of code I've written as a learning experience
