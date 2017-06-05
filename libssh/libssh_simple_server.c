@@ -137,7 +137,8 @@ void start_server_shell(ssh_session session)
 		{
 			memset(result_buffer, 0, sizeof(result_buffer));
 
-			if(ssh_channel_read(shell_channel, result_buffer, sizeof(result_buffer), 0) > 0 && strcmp(result_buffer, end_of_data))
+			if(ssh_channel_read(shell_channel, result_buffer, sizeof(result_buffer), 0) > 0 && 
+			   strcmp(result_buffer, end_of_data))
 				write(STDOUT_FILENO, result_buffer, sizeof(result_buffer));
 			else
 				loop = 0;
