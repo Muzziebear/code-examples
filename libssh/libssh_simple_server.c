@@ -1,8 +1,8 @@
 /*
     A simple libssh server created to familiarize myself with the
     secure shell protocol and the libssh library. Currently the
-    server only implements sending and opening a shell command 
-    channel with the client.
+    server only implements opening a shell command channel, 
+    sending a user command, and receiving the result from the client.
 
     Resources used: 
         http://api.libssh.org/master/index.html
