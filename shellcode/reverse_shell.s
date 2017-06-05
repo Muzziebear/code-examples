@@ -1,3 +1,6 @@
+; Shellcode to implement reverse_shell.c functionality
+; Resources used: "Hacking: The Art of Exploitation, 2nd Edition" by Jon Erickson
+
 BITS 32
 
 ; int socketcall(int call, unsigned long *args)
