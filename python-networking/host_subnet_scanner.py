@@ -1,21 +1,18 @@
-# Python script to scan the host computer's subnet and return 
-# IP addresses of computers connected (assumes /24 subnet)
+# Python script to scan the host computer's subnet and return IP addresses of computers connected (assumes /24 subnet)
 # Resources used: "Black Hat Python" by Justin Seitz
 
 
+#! /usr/bin/env python
 import socket
+import threading
 import os
+import time
 import struct
 from ctypes import *
-import threading
-import time
-from netaddr import IPNetwork, IPAddress
-
 
 # IP header
 class IP(Structure):
-	_fields_ = 
-	[
+	_fields_ = [
 		("ihl", c_ubyte, 4),
 		("version", c_ubyte, 4),
 		("tos", c_ubyte),
@@ -47,15 +44,15 @@ class IP(Structure):
 			self.protocol = str(self.protocol_num)
 
 
+# ICMP header
 class ICMP(Structure):
-	_fields_ = 
-	[
+	_fields_ = [
 		("type", c_ubyte),
 		("code", c_ubyte),
 		("checksum", c_ushort),
 		("unused", c_ushort),
 		("next_hop_mtu", c_ushort)
-	]
+		]
 
 	def __new__(self, socket_buffer):
 		return self.from_buffer_copy(socket_buffer)
@@ -63,70 +60,69 @@ class ICMP(Structure):
 	def __init__(self, socket_buffer):
 		pass
 
-
-
-def get_ip_address():
+	
+# Connect to network and retrieve host IP
+def get_host_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
     ip = s.getsockname()[0]
     s.close()
     return ip
 
-# send the UDP datagrams
-def udp_sender(subnet, magic_message):
-	time.sleep(5)
-	sender = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-	for ip in IPNetwork(subnet):
+# Send udp datagram packets to subnet
+def send_udp(magic_message, subnet):
+	time.sleep(5)
+	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	
+	# /24 subnet scan
+	target_host = 1
+	while target_host < 255:
+		target_ip = (subnet + str(target_host),65212)
+		target_host += 1
 		try:
-			sender.sendto(magic_message, ("%s" % ip,65212))
+			s.sendto(magic_message, target_ip)
 		except:
 			pass
 
+
 def main():
-	# host to listen on
-	host = get_ip_address()
+	host_ip = get_host_ip()
+	print "Connected to network. Host IP address: %s" % host_ip
 
 	# subnet to target
-	subnet = host.split(".")
-	subnet = ".".join(subnet[0:3]) + ".0/24"
+	subnet = host_ip.split(".")
+	subnet = ".".join(subnet[0:3]) + "."
 
-	# magic string we'll check ICMP response for
-	magic_message = "PYTHONRULES!"
+	magic_message = "PythonRules"
 
-	# start sending packets
-	udp_thread = threading.Thread(target=udp_sender, args=(subnet, magic_message))
+	udp_thread = threading.Thread(target=send_udp, args=(magic_message, subnet))
+	udp_thread.daemon = True
 	udp_thread.start()
 
-	if os.name == "nt":
-		windows = True
-	else:
-		windows = False
 
-	if windows:
+	"Scanner started. Sending packets to subnet: %s" % subnet
+
+	if os.name == "nt":
 		socket_protocol = socket.IPPROTO_IP
 	else:
 		socket_protocol = socket.IPPROTO_ICMP
 
 	sniffer = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket_protocol)
-
-	sniffer.bind((host, 0))
-	print "Listening on %s" % host
+	sniffer.bind((host_ip, 0))
 	sniffer.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
 
-	if windows:
+	if os.name == "nt":
 		sniffer.ioctl(socket.SIO_RCVALL, socket.RCVALL_ON)
 
-	try:
-		while True:
-			# read in a packet
-			raw_buffer = sniffer.recvfrom(65565)[0]
 
+	try:
+		while udp_thread.isAlive():
+			raw_buffer = sniffer.recvfrom(65565)[0]
 			# create an IP header from the first 20 bytes of the buffer
 			ip_header = IP(raw_buffer[0:20])
 			# print out the protocol that was detected and the hosts
 			# print "Protocol: %s %s -> %s" % (ip_header.protocol, ip_header.src_address, ip_header.dst_address)
-
 			if ip_header.protocol == "ICMP":
 				# calculate where our ICMP packet starts
 				offset = ip_header.ihl * 4
@@ -140,15 +136,15 @@ def main():
 
 				# check for Type 3 (Destination Unreachable) and Code 3 (Port Unreachable)
 				if icmp_header.code == 3 and icmp_header.type == 3:
-					# make sure host is in our target subnet
-					if IPAddress(ip_header.src_address) in IPNetwork(subnet) and raw_buffer[len(raw_buffer) - len(magic_message):] == magic_message:
-						print "Host Up: %s" % ip_header.src_address
-
-
+				# make sure host is in our target subnet
+					check_subnet = ip_header.src_address.split(".")
+					check_subnet = ".".join(check_subnet[0:3]) + "."
+					if check_subnet == subnet and raw_buffer[len(raw_buffer) - len(magic_message):] == magic_message:
+						print "Host Up: %s" % ip_header.src_address						
 	except Exception, e:
 		# if we're using Windows, turn off promiscuous mode
 		print e
-		if windows:
+		if os.name == "nt":
 			sniffer.ioctl(socket.SIO_RCVALL, socket.RCVALL_OFF)
 
 
