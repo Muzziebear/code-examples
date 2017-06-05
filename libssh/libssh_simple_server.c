@@ -35,43 +35,42 @@ int auth_loop(ssh_session session)
 	int auth = 0;
 
 	do 
-    {
+	{
 		message=ssh_message_get(session);   
-        if(!message)
-            break;
+		if(!message)
+			break;
 
-        switch(ssh_message_type(message))
-        {
-            case SSH_REQUEST_AUTH:
-                switch(ssh_message_subtype(message))
-                {
-                    case SSH_AUTH_METHOD_PASSWORD:
-                        /*
-                        printf("User %s wants to auth with pass %s\n",
-                               ssh_message_auth_user(message),
-                               ssh_message_auth_password(message));
-                        */
-                        if(auth_password(ssh_message_auth_user(message),
-                           ssh_message_auth_password(message)) == 0)
-                        {
-                            auth=1;
-                            ssh_message_auth_reply_success(message,SSH_AUTH_SUCCESS);
-                            break;
-                        }
-                    // not authenticated, send default message
+		switch(ssh_message_type(message))
+		{
+			case SSH_REQUEST_AUTH:
+				switch(ssh_message_subtype(message))
+				{
+					case SSH_AUTH_METHOD_PASSWORD:
+						/*
+						printf("User %s wants to auth with pass %s\n",
+						ssh_message_auth_user(message), ssh_message_auth_password(message));
+						*/
+						if(auth_password(ssh_message_auth_user(message),
+										 ssh_message_auth_password(message)) == 0)
+						{
+							auth=1;
+							ssh_message_auth_reply_success(message,SSH_AUTH_SUCCESS);
+							break;
+						}
+					// not authenticated, send default message
 					default:
-                        ssh_message_auth_set_methods(message,SSH_AUTH_METHOD_PASSWORD);
-                        ssh_message_reply_default(message);
-                }
-                break;
-            default:
-                ssh_message_reply_default(message);
-        }
+						ssh_message_auth_set_methods(message,SSH_AUTH_METHOD_PASSWORD);
+						ssh_message_reply_default(message);
+				}
+				break;
+			default:
+				ssh_message_reply_default(message);
+		}
 
-        ssh_message_free(message);
-    } while (!auth);
+		ssh_message_free(message);
+	} while(!auth);
 
-    return auth;
+	return auth;
 }
 
 // Open ssh channel with client
@@ -81,76 +80,75 @@ ssh_channel open_channel(ssh_session session)
 	ssh_channel channel = 0;
 
 	do 
-    {
-        message=ssh_message_get(session);
+	{
+		message=ssh_message_get(session);
 
-        if(message)
-        {
-            switch(ssh_message_type(message))
-            {
-                case SSH_REQUEST_CHANNEL_OPEN:
-                    if(ssh_message_subtype(message)==SSH_CHANNEL_SESSION)
-                    {
-                        channel = ssh_message_channel_request_open_reply_accept(message);
-                        break;
-                    }
-                default:
-                	ssh_message_reply_default(message);
-            }
+		if(message)
+		{
+			switch(ssh_message_type(message))
+			{
+				case SSH_REQUEST_CHANNEL_OPEN:
+					if(ssh_message_subtype(message)==SSH_CHANNEL_SESSION)
+					{
+						channel = ssh_message_channel_request_open_reply_accept(message);
+						break;
+					}
+				default:
+					ssh_message_reply_default(message);
+			}
 
-            ssh_message_free(message);
-        }
-    } while(message && !channel);
+			ssh_message_free(message);
+		}
+	} while(message && !channel);
 
-    return channel;
+	return channel;
 }
 
 // Open shell channel with client
 void start_server_shell(ssh_session session)
 {
-    ssh_channel shell_channel = open_channel(session);
-    if(shell_channel == NULL)
-        print_error("Failed creating shell channel", session);
+	ssh_channel shell_channel = open_channel(session);
+	if(shell_channel == NULL)
+		print_error("Failed creating shell channel", session);
 
-    puts("[*] Opened shell channel!");
+	puts("[*] Opened shell channel!");
 
-    char shell_in[1024];
-    char shell_cmd[1024];
-    char result_buffer[1024];
-    int loop;
-    memset(shell_in, 0, sizeof(shell_in));
-    memset(shell_cmd, 0, sizeof(shell_cmd));
+	char shell_in[1024];
+	char shell_cmd[1024];
+	char result_buffer[1024];
+	int loop;
+	memset(shell_in, 0, sizeof(shell_in));
+	memset(shell_cmd, 0, sizeof(shell_cmd));
 
-    // Receive shell command input and send to client
-    printf("%s","# ");
-    while(fgets(shell_in, sizeof(shell_in), stdin) != NULL)
-    {
-        memcpy(shell_cmd, shell_in, strcspn(shell_in, "\r\n"));
+	// Receive shell command input and send to client
+	printf("%s","# ");
+	while(fgets(shell_in, sizeof(shell_in), stdin) != NULL)
+	{
+		memcpy(shell_cmd, shell_in, strcspn(shell_in, "\r\n"));
 
-        if(strcmp(shell_cmd, "exit") == 0)
-            break;
+		if(strcmp(shell_cmd, "exit") == 0)
+			break;
 
-        ssh_channel_write(shell_channel, shell_cmd, sizeof(shell_cmd));
-        loop = 1;
-        
-        // Read command result from client until end of data received
-        while(loop)
-        {
-            memset(result_buffer, 0, sizeof(result_buffer));
+		ssh_channel_write(shell_channel, shell_cmd, sizeof(shell_cmd));
+		loop = 1;
 
-            if(ssh_channel_read(shell_channel, result_buffer, sizeof(result_buffer), 0) > 0 
-                && strcmp(result_buffer, end_of_data))
-                write(STDOUT_FILENO, result_buffer, sizeof(result_buffer));
-            else
-                loop = 0;
-        }
+		// Read command result from client until end of data received
+		while(loop)
+		{
+			memset(result_buffer, 0, sizeof(result_buffer));
 
-        printf("%s","# ");
-        memset(shell_in, 0, sizeof(shell_in));
-        memset(shell_cmd, 0, sizeof(shell_cmd));
-    }
+			if(ssh_channel_read(shell_channel, result_buffer, sizeof(result_buffer), 0) > 0 && strcmp(result_buffer, end_of_data))
+				write(STDOUT_FILENO, result_buffer, sizeof(result_buffer));
+			else
+				loop = 0;
+		}
 
-    ssh_channel_free(shell_channel);
+		printf("%s","# ");
+		memset(shell_in, 0, sizeof(shell_in));
+		memset(shell_cmd, 0, sizeof(shell_cmd));
+	}
+
+	ssh_channel_free(shell_channel);
 }
 
 
@@ -158,11 +156,11 @@ int main()
 {
 	int rc;
 	int auth = 0;
-    int port = 9999;
-    char *key_path = "/path/to/key";
-    
-    ssh_bind sshbind = ssh_bind_new();
-    ssh_session session = ssh_new();
+	int port = 9999;
+	char *key_path = "/path/to/key";
+
+	ssh_bind sshbind = ssh_bind_new();
+	ssh_session session = ssh_new();
 
 	ssh_bind_options_set(sshbind, SSH_BIND_OPTIONS_BINDPORT, &port);
 	ssh_bind_options_set(sshbind, SSH_BIND_OPTIONS_RSAKEY, key_path);
@@ -180,7 +178,7 @@ int main()
 	puts("[*] Received connection!");
 
 
-	if (ssh_handle_key_exchange(session))
+	if(ssh_handle_key_exchange(session))
 		print_error("Failed key exchange", session);
 
 	puts ("[*] Exchanged keys!");
@@ -189,30 +187,30 @@ int main()
 
 	auth = auth_loop(session);
 
-	if (!auth)
+	if(!auth)
 		print_error("Failed authenticating", session);
 
-    puts("[*] User authenticated!");
+	puts("[*] User authenticated!");
 
 
-    ssh_channel command_channel = open_channel(session);
-    if(!command_channel)
-        print_error("Failed opening command channel", session);
+	ssh_channel command_channel = open_channel(session);
+	if(!command_channel)
+		print_error("Failed opening command channel", session);
 
-    puts("[*] Opened command channel!");
+	puts("[*] Opened command channel!");
 
 
-    int command = CMD_SHELL;
+	int command = CMD_SHELL;
 
-    puts("[*] Starting Command: Shell Channel");
+	puts("[*] Starting Command: Shell Channel");
 
 	ssh_channel_write(command_channel, &command, sizeof(command));
-    start_server_shell(session);
+	start_server_shell(session);
 
 
-    puts("[*] Exiting.");
+	puts("[*] Exiting.");
 
-    ssh_channel_free(command_channel);
+	ssh_channel_free(command_channel);
 	ssh_disconnect(session);
 	ssh_bind_free(sshbind);
 	ssh_free(session);
