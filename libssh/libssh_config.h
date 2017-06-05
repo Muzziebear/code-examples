@@ -1,3 +1,7 @@
+/*
+	Header file for libssh_simple_server and libssh_simple_client
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <libssh/libssh.h>
