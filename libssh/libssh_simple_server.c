@@ -36,7 +36,7 @@ int auth_loop(ssh_session session)
 
 	do 
     {
-        message=ssh_message_get(session);   
+		message=ssh_message_get(session);   
         if(!message)
             break;
 
@@ -59,7 +59,7 @@ int auth_loop(ssh_session session)
                             break;
                         }
                     // not authenticated, send default message
-                    default:
+					default:
                         ssh_message_auth_set_methods(message,SSH_AUTH_METHOD_PASSWORD);
                         ssh_message_reply_default(message);
                 }
