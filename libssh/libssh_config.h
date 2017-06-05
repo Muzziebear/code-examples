@@ -22,9 +22,9 @@ typedef enum cmd_options
 
 void print_error(const char *error, void *ssh)
 {
-    printf("!!! error : %s : %s\n", ssh_get_error(ssh));
-    ssh_finalize();
-    exit(EXIT_FAILURE);
+	printf("!!! error : %s : %s\n", ssh_get_error(ssh));
+    	ssh_finalize();
+	exit(EXIT_FAILURE);
 }
 
 
