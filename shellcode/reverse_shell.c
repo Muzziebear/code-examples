@@ -1,3 +1,9 @@
+/*
+	This code creates a client socket, connects to a server, redirects standard input, 
+	output, and error to socket, and executes a shell. This is used as a template to
+	create the stand-alone shellcode in reverse_shell.s
+*/
+
 #include <unistd.h>
 #include <string.h>
 #include <sys/socket.h>
