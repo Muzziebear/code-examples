@@ -66,9 +66,9 @@ void start_client_shell(ssh_session session)
 	while(ssh_channel_read(shell_channel, cmd_buffer, sizeof(cmd_buffer), 0) > 0)
 	{
 		/*
-		Open pipe, redirect standard input, output, and error to child pipe, 
-		and execute shell command in child. Receive result in parent and send
-		through channel to server.
+			Open pipe, redirect standard input, output, and error to child pipe, 
+			and execute shell command in child. Receive result in parent and send
+			through channel to server.
 		*/
 		if(pipe(pipefd) == -1) 
 		{
