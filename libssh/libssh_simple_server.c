@@ -1,5 +1,5 @@
 /*
-    A simple libssh server created to familiarize myself with the
+    A simple ssh server created to familiarize myself with the
     secure shell protocol and the libssh library. Currently the
     server only implements opening a shell command channel, 
     sending user commands, and receiving the results from the client.
