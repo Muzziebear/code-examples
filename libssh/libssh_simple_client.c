@@ -122,7 +122,7 @@ void start_client_shell(ssh_session session)
 	}
 
 	puts("[*] Closing shell channel.");
-    ssh_channel_free(shell_channel);
+    	ssh_channel_free(shell_channel);
 }
 
 
@@ -185,7 +185,7 @@ int main()
 		puts("[*] Invalid command");
 
 
-    puts("[*] Exiting.");
+    	puts("[*] Exiting.");
 
 	ssh_channel_free(command_channel);
 	ssh_disconnect(session);
