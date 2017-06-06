@@ -1,6 +1,6 @@
 # Python script to scan the host computer's subnet and return IP addresses of computers connected (assumes /24 subnet)
 # Resources used: "Black Hat Python" by Justin Seitz
-# Interpreted on Python 2.7
+# Interpreted using Python 2.7
 
 
 #! /usr/bin/env python
