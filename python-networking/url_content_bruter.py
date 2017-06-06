@@ -83,7 +83,7 @@ def main():
 	thread_count = 50
 	target_url = "http://testphp.vulnweb.com"
 	user_agent = "Mozilla/5.0 (X11; Linux x86_64; rv:19.0) Gecko/20100101 Firefox/19.0"
-	wordlist_file = "/root/PythonHacking/SVNDigger/all.txt"  # from SVNDigger
+	wordlist_file = "/home/user/SVNDigger/all.txt"  # from SVNDigger
 	resume = None
 
 	word_queue = build_wordlist(wordlist_file, resume)
